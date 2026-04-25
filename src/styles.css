@@ -15,7 +15,7 @@ a {
   color: #2563eb;
 }
 
-.app-shell {
+.page-shell {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -23,7 +23,7 @@ a {
   padding: 2rem;
 }
 
-.demo-card {
+.card {
   width: min(100%, 44rem);
   padding: 2rem;
   border: 1px solid #dbeafe;
@@ -32,20 +32,51 @@ a {
   box-shadow: 0 24px 80px rgb(37 99 235 / 12%);
 }
 
-.demo-actions {
+.actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 1.5rem;
 }
 
-.demo-actions a {
+.actions a,
+.card > a {
+  display: inline-flex;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
   text-decoration: none;
   background: #2563eb;
   color: #ffffff;
   font-weight: 700;
+}
+
+.card.success {
+  border-color: #86efac;
+}
+
+.card.error {
+  border-color: #fecaca;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: #2563eb;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card h1 {
+  margin-top: 0;
+}
+
+.card p {
+  color: #52607a;
+}
+
+.card > a {
+  margin-top: 1rem;
 }
 
 .demo-note {
