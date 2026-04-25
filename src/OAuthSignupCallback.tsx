@@ -6,7 +6,7 @@
 * This component fetches user profile and redirects to conversation page.
 */
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { Spin, Alert } from '@/components/antd';
 import { useAppDispatch } from '@/store/hooks';
@@ -23,25 +23,13 @@ export function OAuthSignupCallback() {
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const hasProcessed = useRef(false);
-  const redirectTimeoutRef = useRef<NodeJS.Timeout>();
-
-  useEffect(() => {
-    handleCallback();
-
-    return () => {
-      // Cleanup: clear any pending redirects
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
    * Handle OAuth callback result
    * Backend has already created account and set auth cookie
    */
-  const handleCallback = async () => {
+  const handleCallback = useCallback(async () => {
     // Prevent duplicate processing
     if (hasProcessed.current) {
       return;
@@ -65,11 +53,11 @@ export function OAuthSignupCallback() {
 
       // Map error codes to user-friendly messages
       const errorMessages: Record<string, string> = {
-        'access_denied': 'Authorization was denied or cancelled.',
-        'missing_params': 'Missing required parameters.',
-        'invalid_state': 'Security verification failed. Please try again.',
-        'platform_mismatch': 'Platform verification failed. Please try again.',
-        'callback_failed': 'Failed to complete signup. Please try again.',
+        access_denied: 'Authorization was denied or cancelled.',
+        missing_params: 'Missing required parameters.',
+        invalid_state: 'Security verification failed. Please try again.',
+        platform_mismatch: 'Platform verification failed. Please try again.',
+        callback_failed: 'Failed to complete signup. Please try again.',
       };
 
       setErrorMessage(errorMessages[error] || decodeURIComponent(error) || 'An error occurred during signup.');
@@ -113,7 +101,18 @@ export function OAuthSignupCallback() {
       setErrorMessage('Unexpected response from OAuth provider.');
       redirectTimeoutRef.current = setTimeout(() => navigate('/signup'), REDIRECT_DELAY_ERROR);
     }
-  };
+  }, [dispatch, navigate, platform, searchParams]);
+
+  useEffect(() => {
+    handleCallback();
+
+    return () => {
+      // Cleanup: clear any pending redirects
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, [handleCallback]); // Run once on mount; guarded against duplicate processing
 
   if (status === 'processing') {
     return (
