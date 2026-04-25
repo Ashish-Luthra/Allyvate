@@ -6,7 +6,7 @@
 * This component fetches user profile and redirects to conversation page.
 */
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { Spin, Alert } from '@/components/antd';
 import { useAppDispatch } from '@/store/hooks';
@@ -23,25 +23,13 @@ export function OAuthSignupCallback() {
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const hasProcessed = useRef(false);
-  const redirectTimeoutRef = useRef<NodeJS.Timeout>();
-
-  useEffect(() => {
-    handleCallback();
-
-    return () => {
-      // Cleanup: clear any pending redirects
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /**
    * Handle OAuth callback result
    * Backend has already created account and set auth cookie
    */
-  const handleCallback = async () => {
+  const handleCallback = useCallback(async () => {
     // Prevent duplicate processing
     if (hasProcessed.current) {
       return;
@@ -52,7 +40,6 @@ export function OAuthSignupCallback() {
     if (platform !== 'google') {
       setStatus('error');
       setErrorMessage('Invalid OAuth platform.');
-      redirectTimeoutRef.current = setTimeout(() => navigate('/signup'), REDIRECT_DELAY_ERROR);
       return;
     }
 
@@ -65,11 +52,11 @@ export function OAuthSignupCallback() {
 
       // Map error codes to user-friendly messages
       const errorMessages: Record<string, string> = {
-        'access_denied': 'Authorization was denied or cancelled.',
-        'missing_params': 'Missing required parameters.',
-        'invalid_state': 'Security verification failed. Please try again.',
-        'platform_mismatch': 'Platform verification failed. Please try again.',
-        'callback_failed': 'Failed to complete signup. Please try again.',
+        access_denied: 'Authorization was denied or cancelled.',
+        missing_params: 'Missing required parameters.',
+        invalid_state: 'Security verification failed. Please try again.',
+        platform_mismatch: 'Platform verification failed. Please try again.',
+        callback_failed: 'Failed to complete signup. Please try again.',
       };
 
       setErrorMessage(errorMessages[error] || decodeURIComponent(error) || 'An error occurred during signup.');
@@ -77,7 +64,6 @@ export function OAuthSignupCallback() {
       // Clean up state
       sessionStorage.removeItem('oauth_state_google');
 
-      redirectTimeoutRef.current = setTimeout(() => navigate('/signup'), REDIRECT_DELAY_ERROR);
       return;
     }
 
@@ -91,29 +77,43 @@ export function OAuthSignupCallback() {
 
         if (googleSignup.fulfilled.match(result)) {
           setStatus('success');
-          // Redirect to conversation page after short delay
-          redirectTimeoutRef.current = setTimeout(() => {
-            navigate('/conversation');
-          }, REDIRECT_DELAY_SUCCESS);
         } else if (googleSignup.rejected.match(result)) {
           setStatus('error');
           const errorPayload = typeof result.payload === 'string' ? result.payload : 'Failed to complete signup. Please try again.';
           setErrorMessage(errorPayload);
-          redirectTimeoutRef.current = setTimeout(() => navigate('/signup'), REDIRECT_DELAY_ERROR);
         }
       } catch (error) {
         console.error('OAuth signup callback error:', error);
         setStatus('error');
         setErrorMessage('An unexpected error occurred.');
-        redirectTimeoutRef.current = setTimeout(() => navigate('/signup'), REDIRECT_DELAY_ERROR);
       }
     } else {
       // No success or error - unexpected state
       setStatus('error');
       setErrorMessage('Unexpected response from OAuth provider.');
-      redirectTimeoutRef.current = setTimeout(() => navigate('/signup'), REDIRECT_DELAY_ERROR);
     }
-  };
+  }, [dispatch, platform, searchParams]);
+
+  useEffect(() => {
+    handleCallback();
+  }, [handleCallback]); // Run once on mount; guarded against duplicate processing
+
+  useEffect(() => {
+    if (status === 'processing') {
+      return;
+    }
+
+    const redirectPath = status === 'success' ? '/conversation' : '/signup';
+    const redirectDelay = status === 'success' ? REDIRECT_DELAY_SUCCESS : REDIRECT_DELAY_ERROR;
+    redirectTimeoutRef.current = setTimeout(() => navigate(redirectPath), redirectDelay);
+
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+        redirectTimeoutRef.current = null;
+      }
+    };
+  }, [navigate, status]);
 
   if (status === 'processing') {
     return (
