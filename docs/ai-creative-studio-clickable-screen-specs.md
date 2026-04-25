@@ -1,4 +1,4 @@
-# AI Creative Studio - Clickable Screen Specs (Per-Screen User Stories + Acceptance Criteria)
+# AdStudio - Clickable Screen Specs (Per-Screen User Stories + Acceptance Criteria)
 
 ## 0) Purpose
 

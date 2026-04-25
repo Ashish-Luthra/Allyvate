@@ -1,4 +1,4 @@
-# AI Creative Studio (World-Class) - Concept Boards
+# AdStudio (World-Class) - Concept Boards
 
 ## 0) Scope and Benchmark Inputs
 
@@ -24,7 +24,7 @@ Most tools are strong in one area but fragmented across ideation, generation, va
 ## 1) Vision Board - Product North Star
 
 ### Product vision
-**AI Creative Studio is the operating system for high-impact marketers and agencies to ship winning ad creatives 10x faster with higher confidence and fewer manual handoffs.**
+**AdStudio is the operating system for high-impact marketers and agencies to ship winning ad creatives 10x faster with higher confidence and fewer manual handoffs.**
 
 ### Value promise
 - **Speed:** from brief to launch-ready assets in minutes.
@@ -352,6 +352,6 @@ Studio canvas view:
 
 ## 15) "Best in the World" Positioning Statement
 
-**AI Creative Studio is not a generator; it is a performance-native creative operating system that makes every campaign smarter with each iteration.**  
+**AdStudio is not a generator; it is a performance-native creative operating system that makes every campaign smarter with each iteration.**  
 Where others stop at asset production, this platform closes the full loop: **strategy -> generation -> validation -> launch -> learning -> auto-next-best action**.
 
